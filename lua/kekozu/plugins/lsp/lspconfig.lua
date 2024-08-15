@@ -97,7 +97,6 @@ return {
 				return global_ts
 			end
 		end
-		print(get_typescript_server_path("/home/kevin/Documents/test_nvim"))
 
 		mason_lspconfig.setup_handlers({
 			-- default handler for installed servers
@@ -105,6 +104,9 @@ return {
 				lspconfig[server_name].setup({
 					capabilities = capabilities,
 				})
+			end,
+			["jdtls"] = function()
+				lspconfig.jdtls.setup({})
 			end,
 			["tsserver"] = function()
 				lspconfig.tsserver.setup({
