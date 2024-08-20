@@ -30,6 +30,7 @@ return {
 			ensure_installed = {
 				"jdtls",
 				"tsserver",
+				"volar",
 				"html",
 				"cssls",
 				"lua_ls",
