@@ -106,7 +106,23 @@ return {
 				})
 			end,
 			["jdtls"] = function()
-				lspconfig.jdtls.setup({})
+				require("java").setup({})
+
+				lspconfig.jdtls.setup({
+					settings = {
+						java = {
+							configuration = {
+								runtimes = {
+									{
+										name = "JavaSE-17",
+										path = "/opt/jdk-17.0.12",
+										default = true,
+									},
+								},
+							},
+						},
+					},
+				})
 			end,
 			["tsserver"] = function()
 				lspconfig.tsserver.setup({
