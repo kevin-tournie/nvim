@@ -34,6 +34,7 @@ return {
 				"gitignore",
 				"java",
 				"go",
+				"gotmpl",
 			},
 			incremental_selection = {
 				enable = true,

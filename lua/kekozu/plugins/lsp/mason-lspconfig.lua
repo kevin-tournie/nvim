@@ -29,11 +29,12 @@ return {
 		mason_lspconfig.setup({
 			ensure_installed = {
 				"jdtls",
-				"tsserver",
+				"ts_ls",
 				"volar",
 				"html",
 				"cssls",
 				"lua_ls",
+				"gopls",
 			},
 		})
 	end,
