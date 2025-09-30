@@ -4,14 +4,28 @@ vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.smartindent = true
 vim.opt.signcolumn = "yes"
-vim.opt.fillchars = {eob = " "} -- no ~ symbols
-
+vim.opt.fillchars = { eob = " " } -- no ~ symbols
+vim.opt.scrolloff = 10
 vim.g.mapleader = " "
 vim.opt.winborder = "rounded"
+vim.opt.updatetime = 250
+vim.opt.timeoutlen = 300
 
 -- Disabled for nvim-tree
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
+
+vim.schedule(function()
+  vim.o.clipboard = 'unnamedplus'
+end)
+
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 vim.pack.add({
 	{ src = "https://github.com/vague2k/vague.nvim" },
@@ -21,7 +35,6 @@ vim.pack.add({
 	{ src = "https://github.com/neovim/nvim-lspconfig" },
 	{ src = "https://github.com/mason-org/mason.nvim" },
 
-	-- Completion plugins
 	{ src = "https://github.com/hrsh7th/cmp-path" },
 	{ src = "https://github.com/hrsh7th/cmp-nvim-lsp" },
 	{ src = "https://github.com/hrsh7th/nvim-cmp" },
@@ -35,7 +48,30 @@ require("mason").setup({
 	ensure_installed = { "lua-language-server", "bash-language-server", "typescript-language-server", "vue-language-server", "jdtls" }
 })
 
+local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local capabilities = cmp_nvim_lsp.default_capabilities()
 
+local vue_language_server_path = vim.fn.expand '$MASON/packages' ..
+		'/vue-language-server' .. '/node_modules/@vue/language-server'
+local tsserver_filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' }
+
+local vue_plugin = {
+	name = '@vue/typescript-plugin',
+	location = vue_language_server_path,
+	languages = { 'vue' },
+	configNamespace = 'typescript',
+}
+
+local ts_ls = {
+	capabilities = capabilities,
+	init_options = {
+		plugins = {
+			vue_plugin,
+		},
+	},
+	filetypes = tsserver_filetypes,
+}
+vim.lsp.config("ts_ls", ts_ls)
 vim.lsp.enable({ "lua_ls", "ts_ls", "vue_ls", "bashls", "jdtls" })
 
 -- LSP keymaps
@@ -52,15 +88,6 @@ vim.keymap.set('n', "<leader>da", vim.diagnostic.show, { desc = 'Show all diagno
 vim.keymap.set('n', "<leader>dn", vim.diagnostic.get_next, { desc = 'Jump to next diagnostic' })
 vim.keymap.set('n', "<leader>dp", vim.diagnostic.get_prev, { desc = 'Jump to previous diagnostic' })
 
--- Telescope keymaps
-local builtin = require('telescope.builtin')
-local utils = require('telescope.utils')
-
-vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Telescope find files' })
-vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
-vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
-vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
-
 -- Autoclosing keymaps
 local autopairs = {
 	['{'] = '{}',
@@ -75,31 +102,11 @@ for open, close in pairs(autopairs) do
 	vim.keymap.set('i', open, close .. '<Left>', { noremap = true })
 end
 
--- Autocompletion engine
-local cmp = require("cmp")
-
-cmp.setup({
-	completion = {
-		completeopt = "menu,menuone,preview,noselect"
-	},
-	mapping = cmp.mapping.preset.insert({
-		["<C-k>"] = cmp.mapping.select_prev_item(), -- previous suggestion
-		["<C-j>"] = cmp.mapping.select_next_item(), -- next suggestion
-		["<C-b>"] = cmp.mapping.scroll_docs(-4),
-		["<C-f>"] = cmp.mapping.scroll_docs(4),
-		["<C-Space>"] = cmp.mapping.complete(), -- show completion suggestions
-		["<C-e>"] = cmp.mapping.abort(),      -- close completion window
-		['<Tab>'] = cmp.mapping(function(fallback)
-			if cmp.visible() then
-				cmp.confirm({ select = true }) -- Confirm the selected item or first if none selected
-			else
-				fallback()                 -- Default tab behavior (e.g., insert tab or jump snippet)
-			end
-		end, { 'i', 's' }),
-	}),
-	-- sources for autocompletion
-	sources = cmp.config.sources({
-		{ name = "nvim_lsp" },
-		{ name = "path" }, -- file system paths
-	}),
+-- auto commands
+vim.api.nvim_create_autocmd('TextYankPost', {
+	desc = "Highlight when yanking text",
+	group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
 })
